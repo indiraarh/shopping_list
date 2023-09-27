@@ -13,8 +13,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-@login_required(login_url='/login')
 
+
+@login_required(login_url='/login')
 def show_main(request):
     products = Product.objects.filter(user=request.user)
     context = {
@@ -25,6 +26,7 @@ def show_main(request):
     }
 
     return render(request, "main.html", context)
+
 
 def create_product(request):
     form = ProductForm(request.POST or None)
@@ -43,17 +45,21 @@ def show_xml(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
 
+
 def show_json(request):
     data = Product.objects.all()
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 def show_xml_by_id(request, id):
     data = Product.objects.filter(pk=id)
     return HttpResponse(serializers.serialize("xml", data), content_type="application/xml")
 
+
 def show_json_by_id(request, id):
     data = Product.objects.filter(pk=id)
     return HttpResponse(serializers.serialize("json", data), content_type="application/json")
+
 
 def register(request):
     form = UserCreationForm()
@@ -62,10 +68,12 @@ def register(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Your account has been successfully created!')
+            messages.success(
+                request, 'Your account has been successfully created!')
             return redirect('main:login')
-    context = {'form':form}
+    context = {'form': form}
     return render(request, 'register.html', context)
+
 
 def login_user(request):
     if request.method == 'POST':
@@ -75,13 +83,15 @@ def login_user(request):
         if user is not None:
             login(request, user)
             # return redirect('main:show_main')
-            response = HttpResponseRedirect(reverse("main:show_main")) 
+            response = HttpResponseRedirect(reverse("main:show_main"))
             response.set_cookie('last_login', str(datetime.datetime.now()))
             return response
         else:
-            messages.info(request, 'Sorry, incorrect username or password. Please try again.')
+            messages.info(
+                request, 'Sorry, incorrect username or password. Please try again.')
     context = {}
     return render(request, 'login.html', context)
+
 
 def logout_user(request):
     logout(request)
@@ -91,3 +101,26 @@ def logout_user(request):
     return response
 
 
+def edit_product(request, id):
+    # Get product berdasarkan ID
+    product = Product.objects.get(pk=id)
+
+    # Set product sebagai instance dari form
+    form = ProductForm(request.POST or None, instance=product)
+
+    if form.is_valid() and request.method == "POST":
+        # Simpan form dan kembali ke halaman awal
+        form.save()
+        return HttpResponseRedirect(reverse('main:show_main'))
+
+    context = {'form': form}
+    return render(request, "edit_product.html", context)
+
+
+def delete_product(request, id):
+    # Get data berdasarkan ID
+    product = Product.objects.get(pk=id)
+    # Hapus data
+    product.delete()
+    # Kembali ke halaman awal
+    return HttpResponseRedirect(reverse('main:show_main'))
