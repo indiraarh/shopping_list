@@ -140,7 +140,7 @@ def add_product_ajax(request):
 
         new_product = Product(name=name, price=price, description=description, user=user)
         new_product.save()
-        print("created")
+        print("created") #comment
         return HttpResponse(b"CREATED", status=201)
         
     return HttpResponseNotFound()
